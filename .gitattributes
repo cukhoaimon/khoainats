@@ -1,0 +1,2 @@
+./internal/repository/query export-ignore
+Makefile filter=git-crypt diff=git-crypt

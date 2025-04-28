@@ -1,0 +1,11 @@
+EmptySuccess:
+  description: "Successful action"
+  content:
+    application/json:
+      schema:
+        title: EmptySuccess
+        type: object
+        properties:
+          message:
+            type: string
+

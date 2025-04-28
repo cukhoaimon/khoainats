@@ -1,0 +1,23 @@
+loginStart:
+  post:
+    security:
+      - BearerToken: [ ]
+      - Roles:
+          - 'Admin'
+    description: |-
+      Start a login process.
+    operationId: v1LoginStart
+    requestBody:
+      content:
+        application/json:
+          schema:
+            title: "V1LoginStartRequest"
+            type: object
+            properties:
+              email:
+                type: string
+            required:
+              - email
+    responses:
+      '200':
+        $ref: "common.yaml#/EmptySuccess"

@@ -1,0 +1,70 @@
+openapi: 3.0.0
+info:
+  title: Khoai NATS Admin API
+  version: <VERSION>
+servers:
+- url: http://localhost:8080
+paths:
+  /v1/login/start:
+    post:
+      description: Start a login process.
+      operationId: v1LoginStart
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/V1LoginStartRequest'
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EmptySuccess'
+          description: Successful action
+      security:
+      - BearerToken: []
+      - Roles:
+        - Admin
+  /v1/noauth:
+    get:
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EmptySuccess'
+          description: Successful action
+components:
+  responses:
+    EmptySuccess:
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/EmptySuccess'
+      description: Successful action
+  schemas:
+    V1LoginStartRequest:
+      example:
+        email: email
+      properties:
+        email:
+          type: string
+      required:
+      - email
+      title: V1LoginStartRequest
+      type: object
+    EmptySuccess:
+      example:
+        message: message
+      properties:
+        message:
+          type: string
+      title: EmptySuccess
+      type: object
+  securitySchemes:
+    BearerToken:
+      scheme: bearer
+      type: http
+    Roles:
+      openIdConnectUrl: ""
+      type: openIdConnect
