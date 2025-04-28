@@ -29,10 +29,6 @@ func NewRouter(db PersistenceStorage) *gin.Engine {
 	router.POST("v1/verify", v1Verify(db))
 
 	return router
-	//return &http.Server{
-	//	Addr:    fmt.Sprintf("%s:%s", cfg.Host, cfg.Port),
-	//	Handler: router.Handler(),
-	//}
 }
 
 func Start(cfg ServerConfig) {
