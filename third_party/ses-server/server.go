@@ -26,7 +26,8 @@ func NewRouter(db PersistenceStorage) *gin.Engine {
 	router := gin.Default()
 
 	router.POST("/v1/code/exchange", v1CodeExchange(db))
-	router.POST("v1/verify", v1Verify(db))
+	router.POST("/v1/verify", v1Verify(db))
+	router.GET("/v1/keys", v1GetKeys(db))
 
 	return router
 }

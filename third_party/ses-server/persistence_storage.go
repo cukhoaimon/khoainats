@@ -1,8 +1,9 @@
 package ses_server
 
 type PersistenceStorage interface {
+	ReadAll() map[string]any
 	Read(key string) any
 	Write(key string, value any) error
-	Init()
-	Shutdown()
+	Init() error
+	Shutdown() error
 }

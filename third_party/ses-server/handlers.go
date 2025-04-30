@@ -40,3 +40,9 @@ func v1Verify(db PersistenceStorage) gin.HandlerFunc {
 
 	}
 }
+
+func v1GetKeys(db PersistenceStorage) gin.HandlerFunc {
+	return func(ctx *gin.Context) {
+		ctx.JSON(200, db.ReadAll())
+	}
+}
