@@ -11,6 +11,7 @@ import (
 	"syscall"
 	"time"
 
+	"github.com/cukhoaimon/khoainats/third_party/database"
 	"github.com/gin-gonic/gin"
 )
 
@@ -18,10 +19,10 @@ type ServerConfig struct {
 	Port       string
 	Host       string
 	WebhookUrl string
-	Database   PersistenceStorage
+	Database   database.AbstractDatabase
 }
 
-func NewRouter(db PersistenceStorage) *gin.Engine {
+func NewRouter(db database.AbstractDatabase) *gin.Engine {
 
 	router := gin.Default()
 
@@ -34,10 +35,13 @@ func NewRouter(db PersistenceStorage) *gin.Engine {
 
 func Start(cfg ServerConfig) {
 	if cfg.Database == nil {
-		cfg.Database = newSimpleDatabase()
+		cfg.Database = database.NewSimpleDatabase()
 	}
 
-	cfg.Database.Init()
+	err := cfg.Database.Init()
+	if err != nil {
+		panic("cannot init database")
+	}
 
 	router := NewRouter(cfg.Database)
 	srv := &http.Server{
@@ -63,11 +67,15 @@ func Start(cfg ServerConfig) {
 
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
-	if err := srv.Shutdown(ctx); err != nil {
+	if err = srv.Shutdown(ctx); err != nil {
 		log.Println("Server Shutdown:", err)
 	}
 
-	cfg.Database.Shutdown()
+	err = cfg.Database.Shutdown()
+	if err != nil {
+		panic("cannot shutdown database")
+		return
+	}
 
 	// catching ctx.Done(). timeout of 5 seconds.
 	<-ctx.Done()

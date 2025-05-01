@@ -1,4 +1,4 @@
-package ses_server
+package database
 
 import (
 	"encoding/binary"
@@ -20,7 +20,7 @@ type worldSimplestDatabase struct {
 	data map[string]any
 }
 
-func newSimpleDatabase() PersistenceStorage {
+func newSimpleDatabase() AbstractDatabase {
 	return &worldSimplestDatabase{
 		data: make(map[string]any),
 	}
@@ -65,7 +65,7 @@ func (w *worldSimplestDatabase) readFromFile(cfg dbConfig) error {
 
 	for {
 		sizeBuf := make([]byte, SIZE_BYTE)
-		_, err := io.ReadFull(file, sizeBuf)
+		_, err = io.ReadFull(file, sizeBuf)
 		if err != nil {
 			if errors.Is(err, io.EOF) {
 				break
@@ -85,7 +85,7 @@ func (w *worldSimplestDatabase) readFromFile(cfg dbConfig) error {
 		}
 
 		var kv map[string]any
-		if err := json.Unmarshal(dataBuf, &kv); err != nil {
+		if err = json.Unmarshal(dataBuf, &kv); err != nil {
 			return fmt.Errorf("error unmarshalling json: %w", err)
 		}
 
@@ -111,7 +111,7 @@ func (w *worldSimplestDatabase) writeToFile(cfg dbConfig) error {
 			return fmt.Errorf("failed to marshal data: %w", err)
 		}
 
-		sizeBuf := make([]byte, 4)
+		sizeBuf := make([]byte, SIZE_BYTE)
 		binary.BigEndian.PutUint32(sizeBuf, uint32(len(jsonData)))
 		if _, err := file.Write(sizeBuf); err != nil {
 			return fmt.Errorf("failed to write size: %w", err)

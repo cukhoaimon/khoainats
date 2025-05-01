@@ -4,6 +4,7 @@ import (
 	"log"
 	"net/http"
 
+	"github.com/cukhoaimon/khoainats/third_party/database"
 	"github.com/gin-gonic/gin"
 )
 
@@ -15,7 +16,7 @@ type V1VerifyCodeRequest struct {
 	Code string `json:"code"`
 }
 
-func v1CodeExchange(db PersistenceStorage) gin.HandlerFunc {
+func v1CodeExchange(db database.AbstractDatabase) gin.HandlerFunc {
 	return func(ctx *gin.Context) {
 		var req V1ExchangeRequest
 		if err := ctx.ShouldBind(&req); err != nil {
@@ -35,13 +36,13 @@ func v1CodeExchange(db PersistenceStorage) gin.HandlerFunc {
 
 }
 
-func v1Verify(db PersistenceStorage) gin.HandlerFunc {
+func v1Verify(db database.AbstractDatabase) gin.HandlerFunc {
 	return func(ctx *gin.Context) {
 
 	}
 }
 
-func v1GetKeys(db PersistenceStorage) gin.HandlerFunc {
+func v1GetKeys(db database.AbstractDatabase) gin.HandlerFunc {
 	return func(ctx *gin.Context) {
 		ctx.JSON(200, db.ReadAll())
 	}
