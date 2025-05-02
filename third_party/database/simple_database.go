@@ -9,15 +9,19 @@ import (
 	"io/fs"
 	"log"
 	"os"
+	"path/filepath"
+	"sync"
+	"time"
 )
 
 const (
 	SIZE_BYTE = 4
-	FILE_DIR  = "./dblog"
+	FILE_DIR  = "./tmp"
 )
 
 type worldSimplestDatabase struct {
 	data map[string]any
+	mu   sync.RWMutex
 }
 
 func newSimpleDatabase() AbstractDatabase {
@@ -27,26 +31,36 @@ func newSimpleDatabase() AbstractDatabase {
 }
 
 func (w *worldSimplestDatabase) ReadAll() map[string]any {
-	return w.data
+	w.mu.RLock()
+	data := w.data
+	w.mu.RUnlock()
+
+	return data
 }
 
 func (w *worldSimplestDatabase) Write(key string, value any) error {
+	w.mu.Lock()
 	w.data[key] = value
+	w.mu.Unlock()
+
 	return nil
 }
 
 func (w *worldSimplestDatabase) Read(key string) any {
-	return w.data[key]
+	w.mu.RLock()
+	data := w.data[key]
+	w.mu.RUnlock()
+
+	return data
 }
 
 func (w *worldSimplestDatabase) Init() error {
 	log.Println("init worldSimplestDatabase")
-	return w.readFromFile(dbConfig{dir: FILE_DIR})
+	return w.readAllFile(dbConfig{dir: FILE_DIR})
 }
 
 func (w *worldSimplestDatabase) Shutdown() error {
 	log.Println("shutting down worldSimplestDatabase")
-
 	return w.writeToFile(dbConfig{dir: FILE_DIR})
 }
 
@@ -54,10 +68,37 @@ type dbConfig struct {
 	dir string
 }
 
-func (w *worldSimplestDatabase) readFromFile(cfg dbConfig) error {
-	w.data = make(map[string]any)
+func (w *worldSimplestDatabase) readAllFile(cfg dbConfig) error {
+	entries, err := os.ReadDir(cfg.dir)
+	if err != nil {
+		return err
+	}
 
-	file, err := os.OpenFile(cfg.dir, os.O_RDONLY, fs.ModeTemporary)
+	for _, entry := range entries {
+		if entry.IsDir() {
+			if err = w.readAllFile(dbConfig{dir: filepath.Join(cfg.dir, entry.Name())}); err != nil {
+				return err
+			}
+		}
+
+		file := filepath.Join(cfg.dir, entry.Name())
+		if err = w.readFile(file); err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
+func (w *worldSimplestDatabase) readFile(fileName string) error {
+	w.mu.Lock()
+	defer w.mu.Unlock()
+
+	if w.data == nil {
+		w.data = make(map[string]any)
+	}
+
+	file, err := os.OpenFile(fileName, os.O_RDONLY, fs.ModeTemporary)
 	if err != nil {
 		return err
 	}
@@ -98,7 +139,8 @@ func (w *worldSimplestDatabase) readFromFile(cfg dbConfig) error {
 }
 
 func (w *worldSimplestDatabase) writeToFile(cfg dbConfig) error {
-	file, err := os.OpenFile(cfg.dir, os.O_CREATE|os.O_WRONLY|os.O_TRUNC, 0644)
+	fileName := filepath.Join(cfg.dir, time.Now().UTC().String())
+	file, err := os.OpenFile(fileName, os.O_CREATE|os.O_WRONLY|os.O_TRUNC, 0644)
 	if err != nil {
 		return fmt.Errorf("failed to open file for writing: %w", err)
 	}
