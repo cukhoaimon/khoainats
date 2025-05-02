@@ -1,12 +1,6 @@
 package database
 
 import (
-	"encoding/binary"
-	"encoding/json"
-	"errors"
-	"fmt"
-	"io"
-	"io/fs"
 	"log"
 	"os"
 	"path/filepath"
@@ -20,13 +14,15 @@ const (
 )
 
 type worldSimplestDatabase struct {
-	data map[string]any
-	mu   sync.RWMutex
+	data      map[string]any
+	compactor JobCompaction
+	mu        sync.RWMutex
 }
 
 func newSimpleDatabase() AbstractDatabase {
 	return &worldSimplestDatabase{
-		data: make(map[string]any),
+		data:      make(map[string]any),
+		compactor: nil,
 	}
 }
 
@@ -56,12 +52,27 @@ func (w *worldSimplestDatabase) Read(key string) any {
 
 func (w *worldSimplestDatabase) Init() error {
 	log.Println("init worldSimplestDatabase")
-	return w.readAllFile(dbConfig{dir: FILE_DIR})
+	if err := w.readAllFile(dbConfig{dir: FILE_DIR}); err != nil {
+		return err
+	}
+
+	log.Println("run compaction job")
+	w.compactor = NewJobCompaction(24*time.Hour, FILE_DIR)
+	if err := w.compactor.Run(); err != nil {
+		return err
+	}
+
+	return nil
 }
 
 func (w *worldSimplestDatabase) Shutdown() error {
 	log.Println("shutting down worldSimplestDatabase")
-	return w.writeToFile(dbConfig{dir: FILE_DIR})
+	if err := writeToFile(filepath.Join(FILE_DIR, time.Now().UTC().String()), w.data); err != nil {
+		return err
+	}
+
+	log.Println("stopping compaction job")
+	return w.compactor.Stop()
 }
 
 type dbConfig struct {
@@ -82,86 +93,15 @@ func (w *worldSimplestDatabase) readAllFile(cfg dbConfig) error {
 		}
 
 		file := filepath.Join(cfg.dir, entry.Name())
-		if err = w.readFile(file); err != nil {
+		data, err := readFile(file)
+		if err != nil {
 			return err
 		}
-	}
-
-	return nil
-}
-
-func (w *worldSimplestDatabase) readFile(fileName string) error {
-	w.mu.Lock()
-	defer w.mu.Unlock()
-
-	if w.data == nil {
-		w.data = make(map[string]any)
-	}
-
-	file, err := os.OpenFile(fileName, os.O_RDONLY, fs.ModeTemporary)
-	if err != nil {
-		return err
-	}
-	defer file.Close()
-
-	for {
-		sizeBuf := make([]byte, SIZE_BYTE)
-		_, err = io.ReadFull(file, sizeBuf)
-		if err != nil {
-			if errors.Is(err, io.EOF) {
-				break
-			}
-			return fmt.Errorf("error reading size: %w", err)
-		}
-
-		dataSize := binary.BigEndian.Uint32(sizeBuf)
-		if dataSize == 0 {
-			continue
-		}
-
-		dataBuf := make([]byte, dataSize)
-		_, err = io.ReadFull(file, dataBuf)
-		if err != nil {
-			return fmt.Errorf("error reading data: %w", err)
-		}
-
-		var kv map[string]any
-		if err = json.Unmarshal(dataBuf, &kv); err != nil {
-			return fmt.Errorf("error unmarshalling json: %w", err)
-		}
-
-		for k, v := range kv {
+		w.mu.Lock()
+		for k, v := range data {
 			w.data[k] = v
 		}
-	}
-
-	return nil
-}
-
-func (w *worldSimplestDatabase) writeToFile(cfg dbConfig) error {
-	fileName := filepath.Join(cfg.dir, time.Now().UTC().String())
-	file, err := os.OpenFile(fileName, os.O_CREATE|os.O_WRONLY|os.O_TRUNC, 0644)
-	if err != nil {
-		return fmt.Errorf("failed to open file for writing: %w", err)
-	}
-	defer file.Close()
-
-	for k, v := range w.data {
-		kv := map[string]any{k: v}
-		jsonData, err := json.Marshal(kv)
-		if err != nil {
-			return fmt.Errorf("failed to marshal data: %w", err)
-		}
-
-		sizeBuf := make([]byte, SIZE_BYTE)
-		binary.BigEndian.PutUint32(sizeBuf, uint32(len(jsonData)))
-		if _, err := file.Write(sizeBuf); err != nil {
-			return fmt.Errorf("failed to write size: %w", err)
-		}
-
-		if _, err := file.Write(jsonData); err != nil {
-			return fmt.Errorf("failed to write json data: %w", err)
-		}
+		w.mu.Unlock()
 	}
 
 	return nil
