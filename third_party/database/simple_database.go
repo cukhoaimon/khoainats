@@ -1,6 +1,7 @@
 package database
 
 import (
+	"errors"
 	"log"
 	"os"
 	"path/filepath"
@@ -10,19 +11,20 @@ import (
 
 const (
 	SIZE_BYTE = 4
-	FILE_DIR  = "./tmp"
 )
 
 type worldSimplestDatabase struct {
 	data      map[string]any
 	compactor JobCompaction
 	mu        sync.RWMutex
+	fileDir   string
 }
 
-func newSimpleDatabase() AbstractDatabase {
+func newSimpleDatabase(fileDir string) AbstractDatabase {
 	return &worldSimplestDatabase{
 		data:      make(map[string]any),
 		compactor: nil,
+		fileDir:   fileDir,
 	}
 }
 
@@ -52,12 +54,12 @@ func (w *worldSimplestDatabase) Read(key string) any {
 
 func (w *worldSimplestDatabase) Init() error {
 	log.Println("init worldSimplestDatabase")
-	if err := w.readAllFile(dbConfig{dir: FILE_DIR}); err != nil {
+	if err := w.readAllFile(w.fileDir); err != nil {
 		return err
 	}
 
 	log.Println("run compaction job")
-	w.compactor = NewJobCompaction(24*time.Hour, FILE_DIR)
+	w.compactor = NewJobCompaction(24*time.Hour, w.fileDir)
 	if err := w.compactor.Run(); err != nil {
 		return err
 	}
@@ -67,7 +69,7 @@ func (w *worldSimplestDatabase) Init() error {
 
 func (w *worldSimplestDatabase) Shutdown() error {
 	log.Println("shutting down worldSimplestDatabase")
-	if err := writeToFile(filepath.Join(FILE_DIR, time.Now().UTC().String()), w.data); err != nil {
+	if err := writeToFile(filepath.Join(w.fileDir, time.Now().UTC().String()), w.data); err != nil {
 		return err
 	}
 
@@ -75,24 +77,30 @@ func (w *worldSimplestDatabase) Shutdown() error {
 	return w.compactor.Stop()
 }
 
-type dbConfig struct {
-	dir string
-}
-
-func (w *worldSimplestDatabase) readAllFile(cfg dbConfig) error {
-	entries, err := os.ReadDir(cfg.dir)
+func (w *worldSimplestDatabase) readAllFile(fileDir string) error {
+	if fileDir == "" {
+		fileDir = w.fileDir
+	}
+	entries, err := os.ReadDir(fileDir)
 	if err != nil {
-		return err
+		if errors.Is(err, os.ErrNotExist) {
+			err = os.Mkdir(fileDir, os.ModeDir)
+			if err != nil {
+				return err
+			}
+		} else {
+			return err
+		}
 	}
 
 	for _, entry := range entries {
 		if entry.IsDir() {
-			if err = w.readAllFile(dbConfig{dir: filepath.Join(cfg.dir, entry.Name())}); err != nil {
+			if err = w.readAllFile(filepath.Join(w.fileDir, entry.Name())); err != nil {
 				return err
 			}
 		}
 
-		file := filepath.Join(cfg.dir, entry.Name())
+		file := filepath.Join(w.fileDir, entry.Name())
 		data, err := readFile(file)
 		if err != nil {
 			return err

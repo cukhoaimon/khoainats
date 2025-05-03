@@ -9,5 +9,5 @@ type AbstractDatabase interface {
 }
 
 func NewSimpleDatabase() AbstractDatabase {
-	return newSimpleDatabase()
+	return newSimpleDatabase("./tmp")
 }
