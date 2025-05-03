@@ -19,30 +19,92 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/EmptySuccess'
-          description: Successful action
-      security:
-      - BearerToken: []
-      - Roles:
-        - Admin
-  /v1/noauth:
-    get:
+                $ref: '#/components/schemas/V1LoginStartResponse'
+          description: Login start
+  /v1/login/exchange:
+    post:
+      description: "Use for exchange an email code, jwt."
+      operationId: v1LoginExchange
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/V1LoginExchangeRequest'
       responses:
         "200":
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/EmptySuccess'
-          description: Successful action
+                $ref: '#/components/schemas/V1AccessToken'
+          description: Login exchange response
 components:
-  responses:
-    EmptySuccess:
-      content:
-        application/json:
-          schema:
-            $ref: '#/components/schemas/EmptySuccess'
-      description: Successful action
   schemas:
+    V1PrincipalType:
+      enum:
+      - EmailCode
+      - Password
+      type: string
+    V1AccessToken:
+      description: Access Token
+      example:
+        organizationId: 046b6c7f-0b8a-43b9-b35d-6489e6daee91
+        createdAt: 2000-01-23T04:56:07.000+00:00
+        jwkId: jwkId
+        roles:
+        - Admin
+        - Admin
+        revokedBy: 046b6c7f-0b8a-43b9-b35d-6489e6daee91
+        principalId: 046b6c7f-0b8a-43b9-b35d-6489e6daee91
+        id: 046b6c7f-0b8a-43b9-b35d-6489e6daee91
+        revokedAt: 2000-01-23T04:56:07.000+00:00
+        principalType: EmailCode
+        updatedAt: 2000-01-23T04:56:07.000+00:00
+      properties:
+        id:
+          format: uuid
+          type: string
+        principalId:
+          format: uuid
+          type: string
+        principalType:
+          $ref: '#/components/schemas/V1PrincipalType'
+        organizationId:
+          format: uuid
+          type: string
+        revokedBy:
+          format: uuid
+          type: string
+        revokedAt:
+          format: date-time
+          type: string
+        createdAt:
+          format: date-time
+          type: string
+        updatedAt:
+          format: date-time
+          type: string
+        roles:
+          items:
+            $ref: '#/components/schemas/V1PrincipalRoleType'
+          type: array
+        jwkId:
+          type: string
+      required:
+      - createdAt
+      - id
+      - organizationId
+      - principalId
+      - principalType
+      - roles
+      - updatedAt
+      type: object
+    V1PrincipalRoleType:
+      enum:
+      - Admin
+      - User
+      - Service
+      - CustomerAdmin
+      type: string
     V1LoginStartRequest:
       example:
         email: email
@@ -53,13 +115,31 @@ components:
       - email
       title: V1LoginStartRequest
       type: object
-    EmptySuccess:
+    V1LoginStartResponse:
       example:
-        message: message
+        principalType: EmailCode
       properties:
-        message:
+        principalType:
+          $ref: '#/components/schemas/V1PrincipalType'
+      title: V1LoginStartResponse
+      type: object
+    V1LoginExchangeRequest:
+      example:
+        passwordOrCode: passwordOrCode
+        email: email
+        principalType: EmailCode
+      properties:
+        email:
           type: string
-      title: EmptySuccess
+        principalType:
+          $ref: '#/components/schemas/V1PrincipalType'
+        passwordOrCode:
+          type: string
+      required:
+      - email
+      - passwordOrCode
+      - principalType
+      title: V1LoginExchangeRequest
       type: object
   securitySchemes:
     BearerToken:

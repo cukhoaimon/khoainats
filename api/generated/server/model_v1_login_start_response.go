@@ -8,7 +8,7 @@
 
 package openapi
 
-type EmptySuccess struct {
+type V1LoginStartResponse struct {
 
-	Message string `json:"message,omitempty"`
+	PrincipalType V1PrincipalType `json:"principalType,omitempty"`
 }

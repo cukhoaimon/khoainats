@@ -2,12 +2,15 @@ package logger
 
 import (
 	"fmt"
+	"log"
+	"log/slog"
+	"os"
 	"time"
 
 	"github.com/gin-gonic/gin"
 )
 
-func CustomLogger(param gin.LogFormatterParams) string {
+func CustomGinLogger(param gin.LogFormatterParams) string {
 	return fmt.Sprintf("%s - [%s] \"%s %s %s %d %s \"%s\" %s\"\n",
 		param.ClientIP,
 		param.TimeStamp.Format(time.RFC1123),
@@ -19,4 +22,8 @@ func CustomLogger(param gin.LogFormatterParams) string {
 		param.Request.UserAgent(),
 		param.ErrorMessage,
 	)
+}
+
+func New(level slog.Level) *log.Logger {
+	return log.New(os.Stdout, fmt.Sprintf("[%s] - ", level.String()), log.LUTC|log.LstdFlags|log.Lshortfile)
 }

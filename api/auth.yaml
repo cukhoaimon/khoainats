@@ -1,9 +1,5 @@
 loginStart:
   post:
-    security:
-      - BearerToken: [ ]
-      - Roles:
-          - 'Admin'
     description: |-
       Start a login process.
     operationId: v1LoginStart
@@ -20,4 +16,97 @@ loginStart:
               - email
     responses:
       '200':
-        $ref: "common.yaml#/EmptySuccess"
+        description: "Login start"
+        content:
+          application/json:
+            schema:
+              title: V1LoginStartResponse
+              type: object
+              properties:
+                principalType:
+                  $ref: '#/components/schemas/V1PrincipalType'
+
+
+loginExchange:
+  post:
+    description: |-
+      Use for exchange an email code, jwt.
+    operationId: v1LoginExchange
+    requestBody:
+      content:
+        application/json:
+          schema:
+            title: "V1LoginExchangeRequest"
+            type: object
+            properties:
+              email:
+                type: string
+              principalType:
+                $ref: "#/components/schemas/V1PrincipalType"
+              passwordOrCode:
+                type: string
+            required:
+              - email
+              - principalType
+              - passwordOrCode
+    responses:
+      '200':
+        description: "Login exchange response"
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/V1AccessToken"
+
+components:
+  schemas:
+    V1PrincipalType:
+      enum:
+        - "EmailCode"
+        - "Password"
+    V1PrincipalRoleType:
+      enum:
+        - "Admin"
+        - "User"
+        - "Service"
+        - "CustomerAdmin"
+    V1AccessToken:
+      description: Access Token
+      type: object
+      required:
+        - id
+        - principalId
+        - organizationId
+        - principalType
+        - roles
+        - createdAt
+        - updatedAt
+      properties:
+        id:
+          type: string
+          format: uuid
+        principalId:
+          type: string
+          format: uuid
+        principalType:
+          $ref: '#/components/schemas/V1PrincipalType'
+        organizationId:
+          type: string
+          format: uuid
+        revokedBy:
+          type: string
+          format: uuid
+        revokedAt:
+          type: string
+          format: date-time
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+        roles:
+          type: array
+          items:
+            $ref: '#/components/schemas/V1PrincipalRoleType'
+        jwkId:
+          type: string

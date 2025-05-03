@@ -18,3 +18,5 @@ components:
 paths:
   /v1/login/start:
     $ref: "./auth.yaml#/loginStart"
+  /v1/login/exchange:
+    $ref: "./auth.yaml#/loginExchange"

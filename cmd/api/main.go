@@ -2,6 +2,7 @@ package main
 
 import (
 	"log"
+	"log/slog"
 
 	"github.com/cukhoaimon/khoainats/internal/auth"
 	"github.com/cukhoaimon/khoainats/internal/logger"
@@ -14,9 +15,7 @@ func main() {
 	// Repository ########################################
 
 	// Services ##########################################
-	authService := services.NewAuthService(
-		services.NewAuthServiceConfig{},
-	)
+	authService := services.NewAuthService(slog.LevelInfo)
 
 	// Resources ##########################################
 	apiResource := resource.NewDefaultAPI(
@@ -25,8 +24,9 @@ func main() {
 			Middlewares: []gin.HandlerFunc{
 				auth.X5009AuthFilter(),
 				gin.Recovery(),
-				gin.LoggerWithFormatter(logger.CustomLogger),
+				gin.LoggerWithFormatter(logger.CustomGinLogger),
 			},
+			LogLevel: slog.LevelInfo,
 		},
 	)
 

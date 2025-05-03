@@ -73,17 +73,17 @@ func DefaultHandleFunc(c *gin.Context) {
 func getRoutes(handleFunctions DefaultAPI) []Route {
 	return []Route{ 
 		{
+			"V1LoginExchange",
+			http.MethodPost,
+			"/v1/login/exchange",
+			handleFunctions.V1LoginExchange,
+            []auth.PrincipalRoleType{},
+		},
+		{
 			"V1LoginStart",
 			http.MethodPost,
 			"/v1/login/start",
 			handleFunctions.V1LoginStart,
-            []auth.PrincipalRoleType{ auth.Admin },
-		},
-		{
-			"V1NoauthGet",
-			http.MethodGet,
-			"/v1/noauth",
-			handleFunctions.V1NoauthGet,
             []auth.PrincipalRoleType{},
 		},
 	}

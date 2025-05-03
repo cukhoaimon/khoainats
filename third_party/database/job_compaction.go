@@ -1,6 +1,7 @@
 package database
 
 import (
+	"fmt"
 	"log"
 	"os"
 	"path/filepath"
@@ -80,15 +81,9 @@ func (c *compactor) runCompact() error {
 		}
 	}
 
-	newFile := filepath.Join(c.dbDir, time.Now().UTC().String())
+	newFile := filepath.Join(c.dbDir, fmt.Sprintf("SNAPSHOT-%s", time.Now().UTC()))
 	if err = writeToFile(newFile, joinedData); err != nil {
 		return err
-	}
-
-	for _, entry := range entries {
-		if err = os.Remove(filepath.Join(c.dbDir, entry.Name())); err != nil {
-			return err
-		}
 	}
 
 	return nil

@@ -14,10 +14,10 @@ import (
 
 type DefaultAPI interface {
 
+    // V1LoginExchange Post /v1/login/exchange
+     V1LoginExchange(c *gin.Context)
+
     // V1LoginStart Post /v1/login/start
      V1LoginStart(c *gin.Context)
-
-    // V1NoauthGet Get /v1/noauth
-     V1NoauthGet(c *gin.Context)
 
 }
