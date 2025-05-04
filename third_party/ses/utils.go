@@ -1,4 +1,4 @@
-package ses_server
+package ses
 
 import (
 	"math/rand"

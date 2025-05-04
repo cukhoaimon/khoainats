@@ -4,7 +4,7 @@ import (
 	"log"
 	"log/slog"
 
-	openapi "github.com/cukhoaimon/khoainats/api/generated/server"
+	"github.com/cukhoaimon/khoainats/api/generated/server"
 	"github.com/cukhoaimon/khoainats/internal/logger"
 )
 

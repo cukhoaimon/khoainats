@@ -1,4 +1,4 @@
-package ses_server
+package ses
 
 import (
 	"log"
@@ -10,6 +10,10 @@ import (
 
 type V1ExchangeRequest struct {
 	Email string `json:"email"`
+}
+
+type V1ExchangeResponse struct {
+	Code string `json:"code"`
 }
 
 type V1VerifyCodeRequest struct {
@@ -31,9 +35,8 @@ func v1CodeExchange(db database.AbstractDatabase) gin.HandlerFunc {
 			return
 		}
 
-		ctx.JSON(200, code)
+		ctx.JSON(200, V1ExchangeResponse{code})
 	}
-
 }
 
 func v1Verify(db database.AbstractDatabase) gin.HandlerFunc {
