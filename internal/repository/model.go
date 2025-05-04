@@ -4,6 +4,7 @@ import (
 	"time"
 
 	"github.com/cukhoaimon/khoainats/internal/auth"
+	"github.com/cukhoaimon/khoainats/internal/repository/enum"
 	"github.com/google/uuid"
 )
 
@@ -42,7 +43,7 @@ type Organization struct {
 
 type Principal struct {
 	Id             uuid.UUID
-	Type           PrincipalType
+	Type           enum.PrincipalType
 	OrganizationId uuid.UUID
 	CreatedAt      time.Time
 	DeletedAt      time.Time
@@ -52,7 +53,7 @@ type Principal struct {
 type PrincipalAttribute struct {
 	Id             uuid.UUID
 	PrincipalId    uuid.UUID
-	Attribute      PrincipalAttributeType
+	Attribute      enum.PrincipalAttributeType
 	AttributeValue string
 	CreatedAt      time.Time
 	CreatedBy      uuid.UUID

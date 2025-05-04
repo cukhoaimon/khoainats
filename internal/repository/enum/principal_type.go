@@ -10,12 +10,12 @@ import (
 type PrincipalType string
 
 const (
-	PrincipalUser PrincipalType = "USER"
+	PrincipalUser    PrincipalType = "USER"
 	PrincipalService PrincipalType = "SERVICE"
 )
 
-func (p PrincipalType) IsValid() bool {
-	switch p {
+func (p *PrincipalType) IsValid() bool {
+	switch *p {
 	case PrincipalUser:
 	case PrincipalService:
 		return true
@@ -23,7 +23,7 @@ func (p PrincipalType) IsValid() bool {
 	return false
 }
 
-
+// MarshalJSON Implement json.Marshaler
 func (p *PrincipalType) MarshalJSON() ([]byte, error) {
 	if !p.IsValid() {
 		return nil, fmt.Errorf("invalid PrincipalType: %s", *p)
@@ -31,6 +31,7 @@ func (p *PrincipalType) MarshalJSON() ([]byte, error) {
 	return json.Marshal(string(*p))
 }
 
+// UnmarshalJSON Implement json.Unmarshaler
 func (p *PrincipalType) UnmarshalJSON(data []byte) error {
 	var s string
 	if err := json.Unmarshal(data, &s); err != nil {
@@ -44,6 +45,7 @@ func (p *PrincipalType) UnmarshalJSON(data []byte) error {
 	return nil
 }
 
+// Value Implement driver.Valuer for SQL
 func (p *PrincipalType) Value() (driver.Value, error) {
 	if !p.IsValid() {
 		return nil, fmt.Errorf("invalid PrincipalType: %s", *p)
@@ -51,6 +53,7 @@ func (p *PrincipalType) Value() (driver.Value, error) {
 	return string(*p), nil
 }
 
+// Scan Implement sql.Scanner for SQL
 func (p *PrincipalType) Scan(value interface{}) error {
 	str, ok := value.(string)
 	if !ok {

@@ -10,7 +10,7 @@ import (
 type PrincipalAttributeType string
 
 const (
-	Email PrincipalAttributeType = "EMAIL"
+	Email      PrincipalAttributeType = "EMAIL"
 	MacAddress PrincipalAttributeType = "MAC_ADDRESS"
 )
 
@@ -22,7 +22,6 @@ func (p *PrincipalAttributeType) IsValid() bool {
 	}
 	return false
 }
-
 
 func (p *PrincipalAttributeType) MarshalJSON() ([]byte, error) {
 	if !p.IsValid() {
