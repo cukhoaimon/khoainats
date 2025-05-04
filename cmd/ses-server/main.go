@@ -1,7 +1,7 @@
 package main
 
 import (
-	ses "github.com/cukhoaimon/khoainats/third_party/ses"
+	"github.com/cukhoaimon/khoainats/pkg/ses"
 )
 
 func main() {

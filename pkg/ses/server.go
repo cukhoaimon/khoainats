@@ -11,7 +11,7 @@ import (
 	"syscall"
 	"time"
 
-	"github.com/cukhoaimon/khoainats/third_party/database"
+	"github.com/cukhoaimon/khoainats/pkg/database"
 	"github.com/gin-gonic/gin"
 )
 
