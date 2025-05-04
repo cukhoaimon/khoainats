@@ -1,3 +1,6 @@
 [submodule "third_party/nats-server"]
 	path = third_party/nats-server
 	url = https://github.com/nats-io/nats-server.git
+[submodule "third_party/carta"]
+	path = third_party/carta
+	url = https://github.com/jackskj/carta.git

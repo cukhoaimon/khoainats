@@ -3,7 +3,6 @@ package model
 import (
 	"time"
 
-	"github.com/cukhoaimon/khoainats/internal/auth"
 	"github.com/google/uuid"
 )
 
@@ -11,7 +10,7 @@ type AccessToken struct {
 	Id             uuid.UUID
 	PrincipalId    uuid.UUID
 	OrganizationId uuid.UUID
-	Roles          []auth.PrincipalRoleType
+	Roles          []string
 	CreatedAt      time.Time
 	UpdatedAt      time.Time
 	RevokedAt      time.Time

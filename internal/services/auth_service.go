@@ -6,6 +6,7 @@ import (
 
 	"github.com/cukhoaimon/khoainats/api/generated/server"
 	"github.com/cukhoaimon/khoainats/internal/logger"
+	"github.com/cukhoaimon/khoainats/pkg/ses"
 )
 
 type AuthService interface {
@@ -14,12 +15,14 @@ type AuthService interface {
 }
 
 type defaultAuthService struct {
-	logger *log.Logger
+	logger    *log.Logger
+	sesClient ses.Client
 }
 
-func NewAuthService(logLevel slog.Level) AuthService {
+func NewAuthService(logLevel slog.Level, sesClient ses.Client) AuthService {
 	return defaultAuthService{
-		logger: logger.New(logLevel),
+		logger:    logger.New(logLevel),
+		sesClient: sesClient,
 	}
 }
 
@@ -28,6 +31,11 @@ func NewAuthService(logLevel slog.Level) AuthService {
 func (s defaultAuthService) V1LoginStart(request openapi.V1LoginStartRequest) (openapi.V1LoginStartResponse, error) {
 	// handle logic
 	s.logger.Printf("V1LoginStart request: %+v", request)
+	resp, err := s.sesClient.V1CodeExchange(request.Email)
+	if err != nil {
+		return openapi.V1LoginStartResponse{}, nil
+	}
+
 	return openapi.V1LoginStartResponse{}, nil
 }
 

@@ -54,11 +54,11 @@ func main() {
 	g.UseDB(db)
 	g.ApplyInterface(
 		func(Querier) {},
-		model.Organization{},
+		model.AccessToken{},
 		model.LoginEvent{},
+		model.Organization{},
 		model.Principal{},
 		model.PrincipalAttribute{},
-		model.User{},
 	)
 	g.Execute()
 }
