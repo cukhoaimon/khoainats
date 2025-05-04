@@ -1,10 +1,10 @@
 package ses
 
 import (
+	"bytes"
 	"encoding/json"
 	"fmt"
 	"net/http"
-	"net/url"
 )
 
 type Client interface {
@@ -28,11 +28,20 @@ func NewSesClient(host, port string, customClient *http.Client) Client {
 }
 
 func (c client) V1CodeExchange(email string) (V1ExchangeResponse, error) {
-	path, err := url.JoinPath(c.baseUrl, "/v1/code/exchange")
+	// Prepare the request payload
+	payload := V1ExchangeRequest{email}
+	jsonData, err := json.Marshal(payload)
 	if err != nil {
 		return V1ExchangeResponse{}, err
 	}
-	resp, err := c.defaultClient.Get(path)
+
+	// Send the POST request
+	resp, err := c.defaultClient.Post(
+		c.baseUrl+"/v1/code/exchange",
+		"application/json",
+		bytes.NewReader(jsonData),
+	)
+
 	if err != nil {
 		return V1ExchangeResponse{}, err
 	}

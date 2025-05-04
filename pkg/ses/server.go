@@ -40,7 +40,7 @@ func Start(cfg ServerConfig) {
 
 	err := cfg.Database.Init()
 	if err != nil {
-		panic("cannot init database")
+		log.Fatalf("cannot init database %v", err)
 	}
 
 	router := NewRouter(cfg.Database)
